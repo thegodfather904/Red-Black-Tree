@@ -1,6 +1,12 @@
 
 public class RedBlackTree{
-  public static void main (String [] args){
-    System.out.println("testing");
+
+  public RedBlackTree(){
+
   }
+
+  public void buildRedBlackTree(Node[] nodeArray){
+    System.out.println("Building red black tree");
+  }
+
 }
