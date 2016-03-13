@@ -5,6 +5,7 @@
 
 import java.io.File;
 import java.io.FileReader;
+import java.net.URL;
 import java.io.BufferedReader;
 import java.util.Scanner;
 
@@ -41,6 +42,8 @@ public class ReadFile{
         nodeArray[currentIndex++] = newNode;
       }
 
+      bf.close();
+
     }
     catch(Exception e){
       //If any error, alert user and return null to avoid exceptions
@@ -50,6 +53,34 @@ public class ReadFile{
 
     return nodeArray;
   }
+
+  /*Prints the contents of the file to confirm being read in correctly*/
+  public void printFileContents(Node[] nodeArray){
+	  for(int x = 0; x < nodeArray.length; x++)
+		  System.out.println(nodeArray[x].getId() + " - " + nodeArray[x].getCount());
+  }
+
+
+
+  /*Reads file in Eclipse (different from reading from command line)*/
+  public Node[] readFileInputEclipse(){
+	  Node[] nodeArray;
+
+	  try{
+		  URL url = ReadFile.class.getClassLoader().getResource("record-file");
+		  System.out.println(url.getPath());
+
+		  nodeArray = new Node[10];
+	  }
+	  catch(Exception e){
+		  System.out.println("Error reading in contents from file");
+		  nodeArray = null;
+	  }
+
+	  return nodeArray;
+  }
+
+
 
 
 }
