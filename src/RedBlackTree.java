@@ -14,19 +14,12 @@ public class RedBlackTree{
 	  public void buildRedBlackTree(Node[] nodeArray){
 	    System.out.println("Building red black tree");
 
-	    //initialize red black tree
+	    //insert first node at root (so we won't have to check if root == null each time to insert
 	    root = nodeArray[0];
 	    root.setRed(false);
-	    nodeArray[1].setRed(false);
-	    nodeArray[2].setRed(false);
-	    root.setLeftChild(nodeArray[1]);
-	    root.setRightChild(nodeArray[2]);
 
-	    //insert first node at root (so we won't have to check if root == null each time to insert
-	//    root = nodeArray[0];
-	//    root.setRed(false);
-
-	    //pointers to nodes we will need to reference (ggp = great grand parent, gp = grand parent, p = parent)
+	    //pointers to nodes we will need to reference (ggp = great grand parent, gp = grand parent, p = parent...)
+	    Node gggp = null;
 	    Node ggp = null;
 	    Node gp = null;
 	    Node p = null;
@@ -39,7 +32,7 @@ public class RedBlackTree{
 	    boolean inserted = false;
 
 	    //insert nodes into tree
-	    for(int x = 3; x < nodeArray.length; x++){
+	    for(int x = 1; x < nodeArray.length; x++){
 
 	    	//go down the tree and find insertion point (start at root)
 	    	current = root;
@@ -49,21 +42,42 @@ public class RedBlackTree{
 	    	p = null;
 
 	    	while(!inserted){
+	    		gggp = ggp;
 	    		ggp = gp;
 	    		gp = p;
 	    		p = current;
 
 	    		//check for color flip on the way down (if current == black && both children == red)
-	    		if (!current.isRed() && current.getLeftChild().isRed() && current.getRightChild().isRed()){
+	    		if(checkBlackParentRedChildren(current)){
 
-	    			//do color flip
-	    			current.setRed(true);
-	    			current.getLeftChild().setRed(false);
-	    			current.getRightChild().setRed(false);
+	    			//flip children to black
+	    			current.getLeftChild().switchColor();
+	    			current.getRightChild().switchColor();
 
-	    			//if grandparent = red, red on red conflict, perform rotations
-	    			if(gp.isRed()){
+	    			//if root, dont switch, if not root also check for red grandparent (red on red conflict)
+	    			if(current != root){
 
+	    				current.switchColor();
+
+	    				//if grandparent = red, red on red conflict, perform rotations
+	    				if(gp.isRed()){
+	    					if(gp.getRightChild() == p){
+	    						//do single rotation
+	    						gp.switchColor();
+			    				ggp.switchColor();
+
+			    				ggp.setRightChild(gp.getLeftChild());
+			    				gp.setLeftChild(ggp);
+
+			    				if(ggp == root)
+			    					root = gp;
+			    				else
+			    					gggp.setRightChild(gp);
+	    					}
+	    					else{
+	    						//do double rotation
+	    					}
+		    			}
 	    			}
 	    		}
 
@@ -108,7 +122,12 @@ public class RedBlackTree{
 	    						p.setLeftChild(gp);
 	    						p.setRightChild(nodeArray[x]);
 	    						gp.setRightChild(null);
-	    						ggp.setRightChild(p);
+
+	    						//check to make sure we still have a pointer to the root
+	    						if(root == gp)
+	    							root = p;
+	    						else
+	    							ggp.setRightChild(p);
 
 	    					}
 	    					else{
@@ -132,10 +151,12 @@ public class RedBlackTree{
 	  }
 
   	/*Checks for a black parent with 2 red children*/
-	private boolean checkBlackParentRedChildred(){
-		return true;
+	private boolean checkBlackParentRedChildren(Node current){
+		if (current.hasTwoChildren() && !current.isRed() && current.getLeftChild().isRed() && current.getRightChild().isRed())
+			return true;
+		else
+			return false;
 	}
-
 
 	public Node getRoot() {
 		return root;
