@@ -24,6 +24,29 @@ public class Node{
 	  red = !red;
   }
 
+  /*Returns true if a node has two children (used in color flips on the way down)*/
+  public boolean hasTwoChildren(){
+	  return !(leftChild == null) && !(rightChild == null);
+  }
+
+  public boolean hasLeftChild(){
+	  return leftChild != null;
+  }
+
+  public boolean hasRightChild(){
+	  return rightChild != null;
+  }
+
+  /*True if test node is left child of current node*/
+  public boolean leftChildIs(Node test){
+	  return leftChild == test;
+  }
+
+  /*True if test node is right child of current node*/
+  public boolean rightChildIs(Node test){
+	  return rightChild == test;
+  }
+
   public int getId(){
     return id;
   }

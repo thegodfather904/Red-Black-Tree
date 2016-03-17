@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /*
 *  Author: Tony Scialo
 *  Description: Red-black tree; provides tree maintance as well as pointer to root
@@ -157,6 +159,231 @@ public class RedBlackTree{
 		else
 			return false;
 	}
+
+	/*Returns the count of the node if found, else returns 0*/
+	public int findCount(int searchId){
+
+		Node current = root;
+
+		int currentId;
+
+		while(current != null){
+
+			currentId = current.getId();
+
+			if (searchId < currentId)
+				current = current.getLeftChild();
+			else if(searchId > currentId)
+				current = current.getRightChild();
+			else if(searchId == currentId)
+				return current.getCount();
+		}
+
+		//if it reaches this point, no id was found, return 0;
+		return 0;
+	}
+
+	/*Find the next node that has loweset id where ID > searchID*/
+	/*Logic is as follows:
+	 *
+	 * Find node
+	 * if node has right child
+	 * 	successor equals min of right subtree
+	 * else if node is left child of parent
+	 * 	successor equals parent
+	 * else
+	 * 	if it has a right parent at some point (we store this on the way down the tree)
+	 * 		grandparent equals successor
+	 * 	else
+	 * 		no successor
+	 *
+	 */
+	public Node findSuccessor(int searchId){
+
+		Node current = root;
+		Node p = null;
+		Node rightParent = null;	//stores the last right parent (stores when we go left)
+
+		//first find node
+		while(current != null){
+			if(searchId == current.getId()){
+
+				if(current.hasRightChild())
+					return findMinNode(current.getRightChild());
+				else if(current == p.getLeftChild())
+					return(p);
+				else{
+					//the last time we went right down the tree is the successor
+					if(rightParent != null)
+						return rightParent;
+					else
+						return new Node(0,0);
+				}
+			}
+			else if (searchId < current.getId()){
+
+				rightParent = current;
+				p = current;
+				current = current.getLeftChild();
+			}
+			else{
+				p = current;
+				current = current.getRightChild();
+			}
+		}
+
+		return new Node (0, 0);
+	}
+
+	/*Find the next node that has highest id where ID < searchID*/
+	/*Logic is as follows:
+	 *
+	 * Find node
+	 * if node has left child
+	 * 	successor equals max of right subtree
+	 * else if node is right child of parent
+	 * 	successor equals parent
+	 * else
+	 * 	if it has a left parent at some point (we store this on the way down the tree)
+	 * 		grandparent equals successor
+	 * 	else
+	 * 		no successor
+	 *
+	 */
+	public Node findPredecessor(int searchId){
+
+		Node current = root;
+		Node p = null;
+		Node leftParent = null;	//stores the last left parent (stores when we go right)
+
+		//first find node
+		while(current != null){
+			if(searchId == current.getId()){
+
+				if(current.hasLeftChild())
+					return findMaxNode(current.getLeftChild());
+				else if(current == p.getRightChild())
+					return(p);
+				else{
+					//the last time we went right down the tree is the successor
+					if(leftParent != null)
+						return leftParent;
+					else
+						return new Node(0,0);
+				}
+			}
+			else if (searchId < current.getId()){
+				p = current;
+				current = current.getLeftChild();
+			}
+			else{
+				leftParent = current;
+				p = current;
+				current = current.getRightChild();
+			}
+		}
+
+		return new Node (0, 0);
+	}
+
+	/*Finds the maximum node for a gven subtree*/
+	private Node findMaxNode(Node subtree){
+		Node current = subtree;
+
+		while(current.hasRightChild())
+			current = current.getRightChild();
+
+		return current;
+	}
+
+	/*Finds the minimum node for a given subtree*/
+	private Node findMinNode(Node subtree){
+
+		Node current = subtree;
+
+		while(current.hasLeftChild())
+			current = current.getLeftChild();
+
+		return current;
+	}
+
+	/*Returns true if the current node is an inside grandchild of the grandparent*/
+	private boolean isInsideGrandchild(Node current, Node p, Node gp){
+		if(gp.leftChildIs(p) && p.rightChildIs(current))
+			return true;
+		else if (gp.rightChildIs(p) && p.leftChildIs(current))
+			return true;
+		else
+			return false;
+	}
+
+	/*
+	 * Returns the count of the number of items in the range inclusively
+	 * Logic is as follows:
+	 *
+	 * while node not found
+	 * 	pop current onto nodeArray stack
+	 *
+	 *
+	 * */
+	public int numberInRange(int start, int end){
+
+		NodeStack stack = new NodeStack();
+
+		Node current = root;
+
+		int numInRange = 0;
+
+		int currentId = -1;
+
+		//while searching for node, pop any node traversed onto stack
+		while(current != null){
+
+			currentId = current.getId();
+
+			//only push items onto our stack that are in our range
+			if(currentId >= start && currentId <= end)
+				stack.push(current);
+
+			if(start == currentId)
+				current = null;
+			else{
+				if(start < current.getId())
+					current = current.getLeftChild();
+
+				else if (start > current.getId())
+					current = current.getRightChild();
+				}
+		}
+
+		//while still nodes in our stack
+		while(stack.isNotEmpty()){
+
+			//pop the item
+			current = stack.pop();
+			numInRange++;
+
+			//if current has right child, push it and go down its left path
+			if(current.hasRightChild()){
+				current = current.getRightChild();
+				currentId = current.getId();
+				if(currentId >= start && currentId <= end)
+					stack.push(current);
+
+				while(current.hasLeftChild()){
+					current = current.getLeftChild();
+					currentId = current.getId();
+
+					//only push if in range
+					if(currentId >= start && currentId <= end)
+						stack.push(current);
+				}
+			}
+		}
+
+		return numInRange;
+	}
+
 
 	public Node getRoot() {
 		return root;
