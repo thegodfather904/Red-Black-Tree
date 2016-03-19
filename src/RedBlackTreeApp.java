@@ -12,7 +12,7 @@ public class RedBlackTreeApp{
       ReadFile rf = new ReadFile();
       //Node[] nodeArray = rf.readFileInput(args[0]);
 
-      Node[] nodeArray = rf.readFileInput(RedBlackTreeApp.class.getClassLoader().getResource("record-file").getPath());
+      Node[] nodeArray = rf.readFileInput(RedBlackTreeApp.class.getClassLoader().getResource("record-file-3").getPath());
 
       //if nodes to process, build tree
       if(nodeArray != null){
@@ -41,36 +41,36 @@ public class RedBlackTreeApp{
         //get next() testing
         System.out.println("NEXT():");
         Node testNode;
-        testNode = rbTree.findSuccessor(0);
+        testNode = rbTree.findSuccessor(7);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findSuccessor(19);
+        testNode = rbTree.findSuccessor(9);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findSuccessor(18);
+        testNode = rbTree.findSuccessor(10);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findSuccessor(22);
+        testNode = rbTree.findSuccessor(11);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findSuccessor(333);
+        testNode = rbTree.findSuccessor(12);
         System.out.println(testNode.getId() + " " + testNode.getCount());
 
         //get previous() testing
         System.out.println("PREVIOUS()");
-        testNode = rbTree.findPredecessor(33);
+        testNode = rbTree.findPredecessor(1);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findPredecessor(35);
+        testNode = rbTree.findPredecessor(4);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findPredecessor(37);
+        testNode = rbTree.findPredecessor(5);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findPredecessor(38);
+        testNode = rbTree.findPredecessor(8);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findPredecessor(39);
+        testNode = rbTree.findPredecessor(10);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findPredecessor(270);
+        testNode = rbTree.findPredecessor(12);
         System.out.println(testNode.getId() + " " + testNode.getCount());
-        testNode = rbTree.findPredecessor(-219);
+        testNode = rbTree.findPredecessor(13);
         System.out.println(testNode.getId() + " " + testNode.getCount());
 
         System.out.println("INRANGE()");
-        System.out.println(rbTree.numberInRange(32, 60));
+        System.out.println(rbTree.numberInRange(4, 58));
 
       }
       else{

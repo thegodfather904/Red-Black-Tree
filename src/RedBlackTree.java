@@ -63,8 +63,8 @@ public class RedBlackTree{
 
 	    				//if grandparent = red, red on red conflict, perform rotations
 	    				if(gp.isRed()){
-	    					if(gp.getRightChild() == p){
-	    						//do single rotation
+	    					if(isRightOutsideGrandchild(p, gp, ggp)){
+	    						//right outside grandchild, do single rotation
 	    						gp.switchColor();
 			    				ggp.switchColor();
 
@@ -76,8 +76,64 @@ public class RedBlackTree{
 			    				else
 			    					gggp.setRightChild(gp);
 	    					}
+	    					else if(isLeftOutsideGrandchild(p, gp, ggp)){
+	    						//left outside grandchild, do single rotation
+	    						gp.switchColor();
+			    				ggp.switchColor();
+
+			    				ggp.setLeftChild(gp.getRightChild());
+			    				gp.setRightChild(ggp);
+
+			    				if(ggp == root)
+			    					root = gp;
+			    				else
+			    					gggp.setLeftChild(gp);
+	    					}
+	    					else if (isLeftRightInsideGrandchild(p, gp, ggp)){
+	    						//LR inside grandchild, do a double rotation
+
+	    						//color flips
+	    						ggp.switchColor();
+	    						p.switchColor();
+
+	    						//first rotation
+	    						ggp.setLeftChild(p);
+	    						gp.setRightChild(p.getLeftChild());
+	    						p.setLeftChild(gp);
+
+	    						//second rotation
+
+	    						ggp.setLeftChild(p.getRightChild());
+	    						p.setRightChild(ggp);
+
+	    						if(root == ggp)
+	    							root = p;
+	    						else
+	    							gggp.setLeftChild(p);
+
+	    					}
 	    					else{
-	    						//do double rotation
+	    						//RL inside grandchild, do a double rotation
+
+	    						//color flips
+	    						ggp.switchColor();
+	    						p.switchColor();
+
+	    						//first rotation
+	    						ggp.setRightChild(p);
+	    						gp.setLeftChild(p.getRightChild());
+	    						p.setRightChild(gp);
+
+	    						//second rotation
+
+	    						ggp.setRightChild(p.getLeftChild());
+	    						p.setLeftChild(ggp);
+
+	    						if(root == ggp)
+	    							root = p;
+	    						else
+	    							gggp.setRightChild(p);
+
 	    					}
 		    			}
 	    			}
@@ -95,13 +151,61 @@ public class RedBlackTree{
 	    				if(!p.isRed())
 	    					p.setLeftChild(nodeArray[x]);
 	    				else{
-	    					//if outside grandchild, do single rotation
 
-	    					//else inside grandchild so do double rotation
+	    					if(gp.getLeftChild() == p){
+	    						//if outside grandchild, do single rotation
+
+	    						gp.switchColor();
+	    						p.switchColor();
+
+	    						p.setRightChild(gp);
+	    						p.setLeftChild(nodeArray[x]);
+	    						gp.setLeftChild(null);
+
+	    						//If root was gp, make sure we still have pointer to root, else determine if connect to ggp left or right child
+	    						if(root == gp)
+	    							root = p;
+	    						else if(ggp.rightChildIs(gp))
+	    							ggp.setRightChild(p);
+	    						else
+	    							ggp.setLeftChild(p);
+
+//	    						if(root == gp)
+//	    							root = p;
+//	    						else
+//	    							ggp.setLeftChild(p);
+	    					}
+	    					else{
+	    						//else inside grandchild so do double rotation
+
+	    						//color swaps
+	    						gp.switchColor();
+	    						nodeArray[x].switchColor();
+
+	    						//rotation 1
+	    						gp.setRightChild(nodeArray[x]);
+	    						nodeArray[x].setRightChild(p);
+
+	    						//rotation 2
+	    						nodeArray[x].setLeftChild(gp);
+
+	    						//if no ggp, nothing to attach so at root, else determin if attaching to ggp left or right child
+	    						if(ggp == null)
+	    							root = nodeArray[x];
+	    						else if (ggp.rightChildIs(gp))
+	    							ggp.setRightChild(nodeArray[x]);
+	    						else
+	    							ggp.setLeftChild(nodeArray[x]);
+
+//	    						if(ggp != null)
+//	    							ggp.setRightChild(nodeArray[x]);
+//	    						else
+//	    							root = nodeArray[x];
+
+	    						gp.setRightChild(null);
+
+	    					}
 	    				}
-
-
-
 	    				inserted = true;
 	    			}
 	    		}
@@ -125,17 +229,44 @@ public class RedBlackTree{
 	    						p.setRightChild(nodeArray[x]);
 	    						gp.setRightChild(null);
 
-	    						//check to make sure we still have a pointer to the root
+	    						//If root was gp, make sure we still have pointer to root, else determine if connect to ggp left or right child
 	    						if(root == gp)
 	    							root = p;
-	    						else
+	    						else if(ggp.rightChildIs(gp))
 	    							ggp.setRightChild(p);
+	    						else
+	    							ggp.setLeftChild(p);
 
 	    					}
 	    					else{
 	    						//else inside grandchild so do double rotation
-	    					}
 
+	    						//color swaps
+	    						gp.switchColor();
+	    						nodeArray[x].switchColor();
+
+	    						//rotation 1
+	    						gp.setLeftChild(nodeArray[x]);
+	    						nodeArray[x].setLeftChild(p);
+
+	    						//rotation 2
+	    						nodeArray[x].setRightChild(gp);
+
+	    						//if no ggp, nothing to attach so at root, else determin if attaching to ggp left or right child
+	    						if(ggp == null)
+	    							root = nodeArray[x];
+	    						else if (ggp.rightChildIs(gp))
+	    							ggp.setRightChild(nodeArray[x]);
+	    						else
+	    							ggp.setLeftChild(nodeArray[x]);
+
+//	    						if(ggp != null)
+//	    							ggp.setLeftChild(nodeArray[x]);
+//	    						else
+//	    							root = nodeArray[x];
+
+	    						gp.setLeftChild(null);
+	    					}
 	    				}
 
 	    				inserted = true;
@@ -200,12 +331,15 @@ public class RedBlackTree{
 	 */
 	public Node findSuccessor(int searchId){
 
+		/*!!!!!!REMOVE ALL THESE DAMN RETURN STATEMENTS*/
+
 		Node current = root;
 		Node p = null;
 		Node rightParent = null;	//stores the last right parent (stores when we go left)
 
 		//first find node
 		while(current != null){
+
 			if(searchId == current.getId()){
 
 				if(current.hasRightChild())
@@ -225,10 +359,22 @@ public class RedBlackTree{
 				rightParent = current;
 				p = current;
 				current = current.getLeftChild();
+
+				//if there are no nodes left or search id is between the child and parent, parent is the successor
+				if(current == null || (searchId > current.getId() && !current.hasRightChild()))
+					return p;
+
 			}
 			else{
 				p = current;
 				current = current.getRightChild();
+
+				//if no more right nodes, parent must be last time we went right on the tree(everything in its left subtree is smaller than it)
+				if(current == null)
+					if(rightParent != null)
+						return rightParent;
+					else
+						return new Node(0,0);
 			}
 		}
 
@@ -307,15 +453,34 @@ public class RedBlackTree{
 		return current;
 	}
 
-	/*Returns true if the current node is an inside grandchild of the grandparent*/
-	private boolean isInsideGrandchild(Node current, Node p, Node gp){
+	private boolean isLeftRightInsideGrandchild(Node current, Node p, Node gp){
 		if(gp.leftChildIs(p) && p.rightChildIs(current))
-			return true;
-		else if (gp.rightChildIs(p) && p.leftChildIs(current))
 			return true;
 		else
 			return false;
 	}
+
+	private boolean isRightLeftInsideGrandchild(Node current, Node p, Node gp){
+		if (gp.rightChildIs(p) && p.leftChildIs(current))
+			return true;
+		else
+			return false;
+	}
+
+	private boolean isLeftOutsideGrandchild(Node current, Node p, Node gp){
+		if(gp.leftChildIs(p) && p.leftChildIs(current))
+			return true;
+		else
+			return false;
+	}
+
+	private boolean isRightOutsideGrandchild(Node current, Node p, Node gp){
+		if(gp.rightChildIs(p) && p.rightChildIs(current))
+			return true;
+		else
+			return false;
+	}
+
 
 	/*
 	 * Returns the count of the number of items in the range inclusively
@@ -383,6 +548,140 @@ public class RedBlackTree{
 
 		return numInRange;
 	}
+
+
+	/*
+	 * Increase the count of the node with searchId, if not present, insert the node
+	 *
+	 * */
+	public int increaseNodeCount(int searchId, int countToAdd){
+		int newCount = 0;
+
+
+	    //pointers to nodes we will need to reference (ggp = great grand parent, gp = grand parent, p = parent...)
+	    Node gggp = null;
+	    Node ggp = null;
+	    Node gp = null;
+	    Node p = null;
+	    Node current = null;
+
+	    //grab it so we won't have to use a ton of get calls
+	    int insertId;
+
+	    //true when a nodes been inserted
+	    boolean inserted = false;
+
+
+    	//go down the tree and find insertion point (start at root)
+    	current = root;
+    	insertId = searchId;
+    	inserted = false;
+    	gp = null;
+    	p = null;
+
+    	while(!inserted){
+    		gggp = ggp;
+    		ggp = gp;
+    		gp = p;
+    		p = current;
+
+    		//check for color flip on the way down (if current == black && both children == red)
+    		if(checkBlackParentRedChildren(current)){
+
+    			//flip children to black
+    			current.getLeftChild().switchColor();
+    			current.getRightChild().switchColor();
+
+    			//if root, dont switch, if not root also check for red grandparent (red on red conflict)
+    			if(current != root){
+
+    				current.switchColor();
+
+    				//if grandparent = red, red on red conflict, perform rotations
+    				if(gp.isRed()){
+    					if(gp.getRightChild() == p){
+    						//do single rotation
+    						gp.switchColor();
+		    				ggp.switchColor();
+
+		    				ggp.setRightChild(gp.getLeftChild());
+		    				gp.setLeftChild(ggp);
+
+		    				if(ggp == root)
+		    					root = gp;
+		    				else
+		    					gggp.setRightChild(gp);
+    					}
+    					else{
+    						//do double rotation
+    					}
+	    			}
+    			}
+    		}
+
+
+
+    		if(insertId < current.getId()){
+    			current = current.getLeftChild();
+
+    			//insert null insert into tree
+    			if(current == null){
+
+    				//if p is black, just insert
+    				if(!p.isRed())
+    					p.setLeftChild(new Node(searchId, countToAdd));
+    				else{
+    					//if outside grandchild, do single rotation
+
+    					//else inside grandchild so do double rotation
+    				}
+
+
+
+    				inserted = true;
+    			}
+    		}
+    		else{
+    			current = current.getRightChild();
+
+    			//if null, insert into tree
+    			if(current == null){
+
+    				//if p is black, just insert
+    				if(!p.isRed())
+    					p.setRightChild(new Node(searchId, countToAdd));
+    				else{
+
+    					if(gp.getRightChild() == p){
+    						//outside grandchild, do flip colors and do single rotation
+    						gp.switchColor();
+    						p.switchColor();
+
+    						p.setLeftChild(gp);
+    						p.setRightChild(new Node(searchId, countToAdd));
+    						gp.setRightChild(null);
+
+    						//check to make sure we still have a pointer to the root
+    						if(root == gp)
+    							root = p;
+    						else
+    							ggp.setRightChild(p);
+
+    					}
+    					else{
+    						//else inside grandchild so do double rotation
+    					}
+
+    				}
+    				inserted = true;
+    			}
+    		}
+
+    	}
+		return 0;
+	}
+
+
 
 
 	public Node getRoot() {
