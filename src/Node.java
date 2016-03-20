@@ -47,6 +47,15 @@ public class Node{
 	  return rightChild == test;
   }
 
+  public String toString(){
+	  return id + " " + count;
+  }
+
+  /*Returns true if a node has no children*/
+  public boolean hasNoChildren(){
+	  return leftChild == null && rightChild == null;
+  }
+
   public int getId(){
     return id;
   }
