@@ -5,11 +5,12 @@
 
 import java.io.File;
 import java.io.FileReader;
-import java.net.URL;
 import java.io.BufferedReader;
 import java.util.Scanner;
 
 public class ReadFile{
+
+  private int actualNumNodes;
 
   public ReadFile(){
 
@@ -17,8 +18,6 @@ public class ReadFile{
 
   /*Reads in file line by line and creates an array of nodes from the input*/
   public Node[] readFileInput(String filename){
-
-    System.out.println("Getting nodes from file");
 
     Node[] nodeArray;
 
@@ -32,15 +31,23 @@ public class ReadFile{
 
       nodeArray = new Node[numNodes];
 
-      //use a scanner to parse the ints in the strink
+      //use a scanner to parse the ints in the string
       Scanner scan;
       Node newNode;
       int currentIndex = 0;
       while((currentLine = bf.readLine()) != null){
         scan = new Scanner(currentLine);
         newNode = new Node(scan.nextInt(), scan.nextInt());
-        nodeArray[currentIndex++] = newNode;
+
+        //make sure count isn't 0 before inserting
+        if(newNode.getCount() > 0)
+        	nodeArray[currentIndex++] = newNode;
+        else
+        	numNodes--;
       }
+
+      //number of nodes = first number in file, actual is that number minus any id's with a count of 0 (we ignore these id's)
+      actualNumNodes = numNodes;
 
       bf.close();
 
@@ -60,26 +67,13 @@ public class ReadFile{
 		  System.out.println(nodeArray[x].getId() + " - " + nodeArray[x].getCount());
   }
 
+public int getActualNumNodes() {
+	return actualNumNodes;
+}
 
-
-  /*Reads file in Eclipse (different from reading from command line)*/
-  public Node[] readFileInputEclipse(){
-	  Node[] nodeArray;
-
-	  try{
-		  URL url = ReadFile.class.getClassLoader().getResource("record-file");
-		  System.out.println(url.getPath());
-
-		  nodeArray = new Node[10];
-	  }
-	  catch(Exception e){
-		  System.out.println("Error reading in contents from file");
-		  nodeArray = null;
-	  }
-
-	  return nodeArray;
-  }
-
+public void setActualNumNodes(int actualNumNodes) {
+	this.actualNumNodes = actualNumNodes;
+}
 
 
 

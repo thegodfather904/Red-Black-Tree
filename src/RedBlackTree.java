@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 /*
 *  Author: Tony Scialo
 *  Description: Red-black tree; provides tree maintance as well as pointer to root
@@ -13,8 +11,7 @@ public class RedBlackTree{
 	  }
 
 	  /*Uses the nodeArray from the input file to build the red-black tree*/
-	  public void buildRedBlackTree(Node[] nodeArray){
-	    System.out.println("Building red black tree");
+	  public void buildRedBlackTree(Node[] nodeArray, int numNodes){
 
 	    //insert first node at root (so we won't have to check if root == null each time to insert
 	    root = nodeArray[0];
@@ -34,7 +31,7 @@ public class RedBlackTree{
 	    boolean inserted = false;
 
 	    //insert nodes into tree
-	    for(int x = 1; x < nodeArray.length; x++){
+	    for(int x = 1; x < numNodes; x++){
 
 	    	//go down the tree and find insertion point (start at root)
 	    	current = root;
@@ -139,8 +136,6 @@ public class RedBlackTree{
 	    			}
 	    		}
 
-
-
 	    		if(insertId < current.getId()){
 	    			current = current.getLeftChild();
 
@@ -169,11 +164,6 @@ public class RedBlackTree{
 	    							ggp.setRightChild(p);
 	    						else
 	    							ggp.setLeftChild(p);
-
-//	    						if(root == gp)
-//	    							root = p;
-//	    						else
-//	    							ggp.setLeftChild(p);
 	    					}
 	    					else{
 	    						//else inside grandchild so do double rotation
@@ -196,11 +186,6 @@ public class RedBlackTree{
 	    							ggp.setRightChild(nodeArray[x]);
 	    						else
 	    							ggp.setLeftChild(nodeArray[x]);
-
-//	    						if(ggp != null)
-//	    							ggp.setRightChild(nodeArray[x]);
-//	    						else
-//	    							root = nodeArray[x];
 
 	    						gp.setRightChild(null);
 
@@ -260,11 +245,6 @@ public class RedBlackTree{
 	    						else
 	    							ggp.setLeftChild(nodeArray[x]);
 
-//	    						if(ggp != null)
-//	    							ggp.setLeftChild(nodeArray[x]);
-//	    						else
-//	    							root = nodeArray[x];
-
 	    						gp.setLeftChild(null);
 	    					}
 	    				}
@@ -278,8 +258,6 @@ public class RedBlackTree{
 
 
 	    }
-
-		System.out.println("Finished building red black tree");
 
 	  }
 
@@ -329,9 +307,9 @@ public class RedBlackTree{
 	 * 		no successor
 	 *
 	 */
-	public Node findSuccessor(int searchId){
+	public Node findSuccessor(int searchId, Node subtree){
 
-		Node current = root;
+		Node current = subtree;
 		Node p = null;
 		Node rightParent = null;	//stores the last right parent (stores when we go left)
 		Node successor = null;
@@ -495,13 +473,6 @@ public class RedBlackTree{
 
 	private boolean isLeftRightInsideGrandchild(Node current, Node p, Node gp){
 		if(gp.leftChildIs(p) && p.rightChildIs(current))
-			return true;
-		else
-			return false;
-	}
-
-	private boolean isRightLeftInsideGrandchild(Node current, Node p, Node gp){
-		if (gp.rightChildIs(p) && p.leftChildIs(current))
 			return true;
 		else
 			return false;
@@ -857,11 +828,13 @@ public class RedBlackTree{
 	 * */
 	public int reduceNodeCount(int searchId, int countDecrease){
 
-	    Node p = null;
 	    Node current = root;
 
 	    boolean deleted = false;
 	    boolean found = false;
+
+	    //keeps track of the parents so we can navigate back up the tree and fix if needed
+	    NodeStack parentStack = new NodeStack();
 
 	    //first, search for node in tree
 	    while(current != null && !deleted && !found){
@@ -872,16 +845,16 @@ public class RedBlackTree{
 	    		found = true;
 	    		current.setCount(current.getCount() - countDecrease);
 	    		if(current.getCount() <= 0){
-	    			deleteNode(current);
+	    			deleteNode(current.getId(), root, parentStack, current);
 	    			deleted = true;
 	    		}
 	    	}
 	    	else if(searchId < current.getId()){
-	    		p = current;
+	    		parentStack.push(current);
 	    		current = current.getLeftChild();
 	    	}
 	    	else{
-	    		p = current;
+	    		parentStack.push(current);
 	    		current = current.getRightChild();
 	    	}
 	    }
@@ -893,61 +866,414 @@ public class RedBlackTree{
 	    	return current.getCount();
 	}
 
-	/*deletes a node from the red black tree, performing any needed corrections as well*/
-	private void deleteNode(Node deleteNode){
+	/*deletes a node from the red black tree, performing any needed corrections as well
+	 *
+	 * Input params are as follows:
+	 * 	deleteId - used when currentNode has 2 children and we must swap
+	 * 	subtreeRoot - root of the subtree we are going down
+	 * 	parentStack - stack of parents used to navigate back up the tree
+	 * 	deleteNode - node currently being deleted
+	 *
+	 * */
+	private void deleteNode(int deleteId, Node subtreeRoot, NodeStack parentStack, Node deleteNode){
 
-		Node p;
+		//if deleteNode = null, we must find it to delete, pushing parents on the stack as we go
+		if(deleteNode == null){
+			Node current = subtreeRoot;
+			boolean found = false;
 
-		if(deleteNode.hasLeftChild()){
-
-			//swap nodes, and keep a pointer to parent of deleted node
-			p = swapDeleteNodeandPredecessor(deleteNode);
-
-			//if deleting a red child, just delete, no corrections need to be made
-			if(p.getRightChild().isRed())
-				p.setRightChild(null);
-			else{
-
+			//first we find the delete node
+			while(current != null && !found){
+				if(deleteId < current.getId()){
+					parentStack.push(current);
+					current = current.getLeftChild();
+				}
+				else if (deleteId > current.getId()){
+					parentStack.push(current);
+					current = current.getRightChild();
+				}
+				else{
+					//deleteId = current id, found our delete node
+					found = true;
+					deleteNode = current;
+				}
 			}
 		}
-		else if (deleteNode.hasRightChild()){
+
+		Node p;			//parent
+		Node newChild;	//parents new child (can be null if no children)
+
+		//if current has 0 or 1 child, we can delete, else we must find successor, swap, and delete
+		if(!deleteNode.hasTwoChildren()){
+
+			//if current is red, we can just delete it (handle if it has 1 child as well
+			if(deleteNode.isRed()){
+				p = parentStack.pop();
+
+				//determine if current node has any children, so we can point p to it if necessary
+				if(deleteNode.hasNoChildren())
+					newChild = null;
+				else if (deleteNode.hasLeftChild())
+					newChild = deleteNode.getLeftChild();
+				else
+					newChild = deleteNode.getRightChild();
+
+				//determine if current is left or right child
+				if(p.getLeftChild() == deleteNode)
+					p.setLeftChild(newChild);
+				else
+					p.setRightChild(newChild);
+
+				//this is an end case, we can return
+				return;
+			}
+			else if(!deleteNode.isRed() && deleteNode.hasRedChild()){
+				//current is black and has 1 red child, delete and move child up
+				if(deleteNode.hasLeftChild())
+					newChild = deleteNode.getLeftChild();
+				else
+					newChild = deleteNode.getRightChild();
+
+				//switch new child from red to black to handle black deficiency
+				newChild.switchColor();
+
+				if(parentStack.isNotEmpty()){
+					p = parentStack.pop();
+
+					//determine if current is left or right child
+					if(p.getLeftChild() == deleteNode)
+						p.setLeftChild(newChild);
+					else
+						p.setRightChild(newChild);
+				}
+				else
+					root = newChild;
+
+
+				//this is an end case, we can return
+				return;
+			}
+			else{
+
+				//deleting a black node, make it double black and then follow the cases, mark as -1 so we can know when to delete a double black node
+				deleteNode.setDoubleBlack(true);
+
+				//while there are still parents, fix tree until we reach an end case (1, 4, or 6)
+				while(parentStack.isNotEmpty()){
+
+					p = parentStack.pop();
+
+					if(isCase1(p)){
+						//root is double black, just set to single black
+						p.setDoubleBlack(false);
+
+						//terminal case
+						return;
+					}
+					else if(isCase2(p)){
+
+						if(p.getLeftChild().isDoubleBlack()){
+							Node sibling = p.getRightChild();
+
+							//rotations
+							p.setRightChild(sibling.getLeftChild());
+							sibling.setLeftChild(p);
+
+							if(root == p)
+								root = sibling;
+							else{
+								Node nextParent = parentStack.pop();
+								if(nextParent.getRightChild() == p)
+									nextParent.setRightChild(sibling);
+								else
+									nextParent.setLeftChild(sibling);
+
+								parentStack.push(nextParent);
+								parentStack.push(sibling);
+								parentStack.push(p);
+							}
+
+							//color changes
+							p.switchColor();
+							sibling.switchColor();
+						}
+						else{
+							Node sibling = p.getLeftChild();
+
+							//rotations
+							p.setLeftChild(sibling.getRightChild());
+							sibling.setRightChild(p);
+
+							if(root == p)
+								root = sibling;
+							else{
+								Node nextParent = parentStack.pop();
+								if(nextParent.getRightChild() == p)
+									nextParent.setRightChild(sibling);
+								else
+									nextParent.setLeftChild(sibling);
+
+								parentStack.push(nextParent);
+								parentStack.push(sibling);
+								parentStack.push(p);
+							}
+
+							//color changes
+							p.switchColor();
+							sibling.switchColor();
+
+						}
+
+					}
+					else if(isCase3(p)){
+
+						//change sibling of double black to red, delete double black, make parent double black
+						if(p.getLeftChild().isDoubleBlack()){
+							p.getRightChild().setRed(true);
+
+							//delete the node or set back to single black
+							if(p.getLeftChild() == deleteNode)
+								p.setLeftChild(null);
+							else
+								p.getLeftChild().setDoubleBlack(false);
+						}
+						else{
+							p.getLeftChild().setRed(true);
+							if(p.getRightChild() == deleteNode)
+								p.setRightChild(null);
+							else
+								p.getLeftChild().setDoubleBlack(false);
+						}
+
+						p.setDoubleBlack(true);
+
+						//if root, push back on stack so we can get to case 1
+						if(p == root)
+							parentStack.push(p);
+
+					}
+					else if(isCase4(p)){
+
+						//switch parent and sibling color
+						p.switchColor();
+
+						if(p.getLeftChild().isDoubleBlack()){
+							if(p.getLeftChild() == deleteNode)
+								p.setLeftChild(null);
+							else
+								p.getLeftChild().setDoubleBlack(false);
+							p.getRightChild().switchColor();
+						}
+						else{
+							if(p.getRightChild() == deleteNode)
+								p.setRightChild(null);
+							else
+								p.getLeftChild().setDoubleBlack(false);
+
+							p.getLeftChild().switchColor();
+						}
+
+						//terminating case
+						return;
+					}
+					else if(isCase5(p)){
+
+						if(p.getLeftChild().isDoubleBlack()){
+
+							Node pRightChildLeftChild = p.getRightChild().getLeftChild();
+
+							//perform rotations
+							p.getRightChild().setLeftChild(pRightChildLeftChild.getRightChild());
+							pRightChildLeftChild.setRightChild(p.getRightChild());
+							p.setRightChild(pRightChildLeftChild);
+
+							//perform color changes
+							pRightChildLeftChild.setRed(false);
+							pRightChildLeftChild.getRightChild().setRed(true);
+
+						}
+						else{
+
+							Node pLeftChildRightChild = p.getLeftChild().getRightChild();
+
+							//perform rotations
+							p.getLeftChild().setRightChild(pLeftChildRightChild.getLeftChild());
+							pLeftChildRightChild.setLeftChild(p.getLeftChild());
+							p.setLeftChild(pLeftChildRightChild);
+
+							//perform color changes
+							pLeftChildRightChild.setRed(false);
+							pLeftChildRightChild.getLeftChild().setRed(true);
+
+						}
+
+						//not terminal, push p back on stack
+						parentStack.push(p);
+
+					}
+					else{
+
+						//if none of the others, must be case 6
+						if(p.getLeftChild().isDoubleBlack()){
+
+							Node pRightChild = p.getRightChild();
+
+							//rotation
+							p.setRightChild(pRightChild.getLeftChild());
+							pRightChild.setLeftChild(p);
+							if(p.getLeftChild() == deleteNode)
+								p.setLeftChild(null);
+							else
+								p.getLeftChild().setDoubleBlack(false);
+
+							//color change
+							pRightChild.setRed(p.isRed());
+							p.setRed(false);
+							pRightChild.getRightChild().setRed(false);
+
+							//make sure we still have root pointer
+							if(root == p)
+								root = pRightChild;
+							else{
+								//pop parent from stack, set correct child, push back on
+								Node quickPop = parentStack.pop();
+								if(quickPop.getLeftChild() == p)
+									quickPop.setLeftChild(pRightChild);
+								else
+									quickPop.setRightChild(pRightChild);
+
+								parentStack.push(quickPop);
+							}
+						}
+						else{
+
+							Node pLeftChild = p.getLeftChild();
+
+							//rotation
+							p.setLeftChild(pLeftChild.getRightChild());
+							pLeftChild.setRightChild(p);
+							if(p.getRightChild() == deleteNode)
+								p.setRightChild(null);
+							else
+								p.getRightChild().setDoubleBlack(false);
+
+							//color change
+							pLeftChild.setRed(p.isRed());
+							p.setRed(false);
+							pLeftChild.getLeftChild().setRed(false);
+
+							//make sure we still have root pointer
+							if(root == p)
+								root = pLeftChild;
+							else{
+								//pop parent from stack, set correct child, push back on
+								Node quickPop = parentStack.pop();
+								if(quickPop.getLeftChild() == p)
+									quickPop.setLeftChild(pLeftChild);
+								else
+									quickPop.setRightChild(pLeftChild);
+
+								parentStack.push(quickPop);
+							}
+						}
+
+						//terminal case
+						return;
+					}
+				}
+			}
 
 		}
 		else{
+			//find its successor, swap, and run delete node on successor node
+			Node successor = findSuccessor(deleteNode.getId(), deleteNode.getRightChild());
 
+			//set delete node to successor's id
+			deleteNode.setId(successor.getId());
+
+			//push delete node on the parent stack
+			parentStack.push(deleteNode);
+
+			//run delete on successor (passing in id so we can search for it and pop parents on the stack if needed)
+			deleteNode(successor.getId(), deleteNode.getRightChild(), parentStack, null);
 		}
-
-
 
 	}
 
+	//case 1 for deletion
+	private boolean isCase1(Node parent){
+		boolean case1 = false;
 
+		if(parent == root && parent.isDoubleBlack())
+			case1 = true;
 
-	/*Finds node we will replace the deleted value with (it predecessor)
-	 *
-	 * Pass in currents left subtree to get this node
-	 * */
-	private Node swapDeleteNodeandPredecessor(Node deleteNode){
-
-		//need parent pointer so we can perform other deletion steps
-		Node p = null;
-
-		Node current = deleteNode.getLeftChild();
-
-		//find node
-		while(current.hasRightChild()){
-			p = current;
-			current = current.getRightChild();
-		}
-
-		//swap node values
-		int idHolder = deleteNode.getId();
-		deleteNode.setId(current.getId());
-		current.setId(idHolder);
-
-		return p;
+		return case1;
 	}
 
+	//case 2 for deletion
+	private boolean isCase2(Node parent){
+		boolean case2 = false;
+
+		Node leftChild = parent.getLeftChild();
+		Node rightChild = parent.getRightChild();
+
+		if(!parent.isRed() && (leftChild != null && leftChild.isDoubleBlack()) && (rightChild != null && rightChild.isRed() && rightChild.hasTwoBlackChildren()))
+			case2 = true;
+		else if(!parent.isRed() && (rightChild != null && rightChild.isDoubleBlack()) && (leftChild != null && leftChild.isRed() && leftChild.hasTwoBlackChildren()))
+			case2 = true;
+
+		return case2;
+	}
+
+	//case 3 for deletion
+	private boolean isCase3(Node parent){
+
+		boolean case3 = false;
+
+		Node leftChild = parent.getLeftChild();
+		Node rightChild = parent.getRightChild();
+
+		if(!parent.isRed() && (leftChild != null && leftChild.isDoubleBlack()) && (rightChild != null && rightChild.hasTwoBlackChildren()))
+			case3 = true;
+		else if(!parent.isRed() && (rightChild != null && rightChild.isDoubleBlack()) && (leftChild != null && leftChild.hasTwoBlackChildren()))
+			case3 = true;
+
+		return case3;
+
+	}
+
+	//case 4 for deletion
+	private boolean isCase4(Node parent){
+
+		boolean case4 = false;
+
+		Node leftChild = parent.getLeftChild();
+		Node rightChild = parent.getRightChild();
+
+		if(parent.isRed() &&  (leftChild != null && leftChild.isDoubleBlack()) && (rightChild != null && rightChild.hasTwoBlackChildren()))
+			case4 = true;
+		else if(parent.isRed() && (rightChild != null && rightChild.isDoubleBlack() && (leftChild != null && leftChild.hasTwoBlackChildren())))
+			case4 = true;
+
+		return case4;
+	}
+
+	//case 5 for deletion
+	private boolean isCase5(Node parent){
+		boolean case5 = false;
+
+		Node leftChild = parent.getLeftChild();
+		Node rightChild = parent.getRightChild();
+
+		if(!parent.isRed() && (leftChild != null && leftChild.isDoubleBlack()) && (rightChild != null && !rightChild.isRed())
+				&& (rightChild.getLeftChild() != null && rightChild.getLeftChild().isRed()) && (rightChild.getRightChild() != null && !rightChild.getRightChild().isRed()))
+			case5 = true;
+		else if(!parent.isRed() && (rightChild != null && rightChild.isDoubleBlack()) && (leftChild != null && !leftChild.isRed())
+				&& (leftChild.getRightChild() != null && leftChild.getRightChild().isRed()) && (leftChild.getLeftChild() != null && !leftChild.getLeftChild().isRed()))
+			case5 = true;
+
+		return case5;
+	}
 
 
 	public Node getRoot() {
