@@ -537,7 +537,7 @@ public class RedBlackTree{
 
 			//pop the item
 			current = stack.pop();
-			numInRange++;
+			numInRange += current.getCount();
 
 			//if current has right child, push it and go down its left path
 			if(current.hasRightChild()){
